@@ -1,0 +1,17 @@
+# Define colors
+GREEN="\033[0;32m"
+RED="\033[0;31m"
+YELLOW="\033[0;33m"
+RESET="\033[0m"
+
+# Define function to set exit status indicator
+function exit_status_indicator() {
+  if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✔${RESET}"
+  else
+    echo -e "${RED}✘${RESET}"
+  fi
+}
+
+# Set the PS1 prompt
+PS1="\n$GREEN\u$RESET@$YELLOW\h$RESET:$GREEN\w$RESET \$(exit_status_indicator)\n\$ "

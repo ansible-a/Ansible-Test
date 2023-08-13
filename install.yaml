@@ -1,0 +1,81 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: Updating all installed packages for Rocky and RedHat.
+    tags: always
+    dnf:
+      name: "*"
+      state: latest
+      update_cache: yes
+    when: ansible_os_family == "RedHat" and ansible_distribution_major_version == '9'
+
+  - name: Updating all installed package for Debian.
+    tags: always
+    apt:
+      update_cache: yes
+      upgrade: dist
+    when: ansible_facts['os_family'] == 'Debian' and ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_major_version'] == '12'  # Replace with your Debian version      
+      
+  - name: Checking reboot if needed
+    tags: always
+    reboot:
+    when: ansible_facts.ansible_reboot_pending | default(false) | bool
+
+  - name: Copy default bash_prompt.
+    tags: always
+    copy: 
+      src: /home/raj/ansible/file/.bash_prompt
+      dest: /home/raj/.bash_prompt
+      owner: raj
+      group: raj
+      mode: 0644
+
+  - name: Append file for making changes to bash-prompt.
+    tags: always
+    lineinfile:
+      path: /home/raj/.bashrc
+      line: "{{ item }}"
+      insertafter: EOF  # This will append at the end of the file
+    loop:
+      - "source ~/.bash_prompt"
+      - "alias c='clear'"
+
+  - name: Install fail2ban and Qemu-Guest-Agent.
+    tags: always
+    package:
+      name:
+        - fail2ban
+        - qemu-guest-agent
+      state: latest
+      update_cache: yes
+
+  - name: Configure fail2ban on RedHat and Debian based systems.
+    tags: always
+    copy: 
+      src: /home/raj/ansible/file/jail.local
+      dest: /etc/fail2ban/jail.local
+      owner: root
+      group: root
+      mode: 0644
+        
+  - name: Restarting fail2ban.      
+    service:
+      name: fail2ban
+      state: restarted
+      enabled: true      
+
+- hosts: web-servers
+  become: true
+  tasks:
+
+  - name: Installing apache on Redhat
+    tags: apache, httpd, RedHat
+    dnf:
+      name:
+        - httpd
+        - php
+      state: latest
+    when: ansible_os_family == "RedHat" and ansible_distribution_major_version == '9' 
