@@ -60,12 +60,14 @@
       owner: root
       group: root
       mode: 0644
+    register: fail2ban
         
   - name: Restarting fail2ban.      
     service:
       name: fail2ban
       state: restarted
-      enabled: true      
+      enabled: true 
+    when: fail2ban.changed  
 
 - hosts: web-servers
   become: true
