@@ -1,0 +1,36 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+# Here pre_tasks are used beacuse we want to execute this before anything else. 
+
+  - name: Install updates (RedHat, Rocky and Alma).
+    tags: always
+    dnf: 
+#      update_only: yes
+      update_cache: yes
+    changed_when: false
+    when: ansible_distribution in ["RedHat", "Rocky"]   
+
+  - name: Install updates (Debian and Ubuntu).
+    tags: always
+    apt:
+#      upgrade: dist	
+      update_cache: yes
+    changed_when: false
+    when: ansible_distribution in ["Debian", "Ubuntu"] 
+
+# Here chnaged_when: false will not make chnaged 1 in final result when we will run the playbook.
+
+
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Adding ssh key for Lucifer user account.
+      tags: always
+      authorized_key:
+        user: lucifer
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB2SbtGaj0hwOLwvCaJ/XTWuGvxn4UY/ZYmaVL9MHMA5 Ansible"
